@@ -1,20 +1,23 @@
 import { AlchemieInteractiveFrame } from '@alchemiesolns/activity-frame'
 import {useState} from "react";
-import { isMoleculeValid } from '@alchemiesolns/scorer';
+import { isConfigValid } from '@alchemiesolns/scorer';
 
 const App = () => {
   const [start, setStart] = useState("");
   const [goal, setGoal] = useState("");
+  const [url, setUrl] = useState("https://alchemie-lewis2.web.app/");
   const [response, setResponse] = useState("");
   const [correct, setCorrect] = useState(false);
   
+  const [paramString, setParamString] = useState("");
+  const [paramObject, setParamObject] = useState({});
+
   // Lewis Parameters are
   // - showAtomBar
   // - showFormalCharge
   // - showOctetCount
   // - showElectronsPlaced
   // - useCharge
-  const params = {showOctetCount: "false"}
   // In this example, we will turn off Octet Count for students, to show the use of the params
 
   const onStartMessage = (e: MessageEvent) => {
@@ -35,12 +38,28 @@ const App = () => {
     }
   }
 
-  return ( <>
+  const setParams = (s: string) => {
+    setParamString(s);
+    try {
+      setParamObject(JSON.parse(s));
+    } catch(e) {
+      setParamObject({});
+    }
+  }
 
-    Set Start State
+  return ( <>
+    <div>
+        Interactive URL: <input name="myInput" value={url} onChange={(e) => setUrl(e.currentTarget.value)}/>
+    </div>
+    <div>
+        Parameters/Options: <input name="myInput" value={paramString} onChange={(e) => setParams(e.currentTarget.value)}/>
+    </div>
+    <div>
+      Set Start State
+    </div>
     <div>
         <AlchemieInteractiveFrame 
-        src={"https://alchemie-lewis2.web.app/"}
+        src={url}
         size={"medium"}
         frameClass={""}
         onInteractiveMessage={onStartMessage}/>
@@ -49,7 +68,7 @@ const App = () => {
     Set Goal State
     <div>
         <AlchemieInteractiveFrame 
-        src={"https://alchemie-lewis2.web.app/"}
+        src={url}
         size={"medium"}
         frameClass={""}
         onInteractiveMessage={onGoalMessage}/>
@@ -58,15 +77,15 @@ const App = () => {
     Student Response
     <div>
         <AlchemieInteractiveFrame 
-        src={"https://alchemie-lewis2.web.app/"}
+        src={url}
         start={start}
         size={"medium"}
         frameClass={""}
-        params={params}
+        params={paramObject}
         onInteractiveMessage={onResponseMessage}/>
     </div>
 
-    <button onClick={() => setCorrect(isMoleculeValid(response, [goal]))}>Check Answer</button>
+    <button onClick={() => setCorrect(isConfigValid(url, response, [goal], paramObject))}>Check Answer</button>
     Answer is {correct.toString()}
   </>)
 }
